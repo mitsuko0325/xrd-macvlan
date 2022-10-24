@@ -1,0 +1,129 @@
+networks:
+  macvlan0:
+    driver: macvlan
+    driver_opts:
+      parent: ens224
+    ipam:
+      config:
+      - subnet: 10.10.10.0/24
+  xrd1-gi1-xrd2-gi1:
+    driver_opts:
+      com.docker.network.container_iface_prefix: xr-0
+    internal: true
+    name: xrd1-gi1-xrd2-gi1
+  xrd1-gi2:
+    driver_opts:
+      com.docker.network.container_iface_prefix: xr-1
+    internal: true
+    name: xrd1-gi2
+  xrd2-gi2:
+    driver_opts:
+      com.docker.network.container_iface_prefix: xr-2
+    internal: true
+    name: xrd2-gi2
+services:
+  xrd1:
+    cap_add:
+    - CHOWN
+    - DAC_OVERRIDE
+    - FSETID
+    - FOWNER
+    - MKNOD
+    - NET_RAW
+    - SETGID
+    - SETUID
+    - SETFCAP
+    - SETPCAP
+    - NET_BIND_SERVICE
+    - SYS_CHROOT
+    - KILL
+    - AUDIT_WRITE
+    - SYS_NICE
+    - SYS_ADMIN
+    - SYS_RESOURCE
+    - NET_ADMIN
+    - SYS_PTRACE
+    - IPC_LOCK
+    cap_drop:
+    - all
+    container_name: xrd1
+    devices:
+    - /dev/fuse
+    - /dev/net/tun
+    environment:
+      XR_EVERY_BOOT_CONFIG: /etc/xrd/startup.cfg
+      XR_INTERFACES: linux:xr-00,xr_name=Gi0/0/0/1;linux:eth0,xr_name=Gi0/0/0/2
+    image: ios-xr:7.7.1
+    networks:
+      xrd1-gi1-xrd2-gi1: null
+      xrd1-gi2: null
+      macvlan0: null
+    security_opt:
+    - apparmor:unconfined
+    - label:disable
+    stdin_open: true
+    tty: true
+    volumes:
+    - source: ./xrd1_xrconf.cfg
+      target: /etc/xrd/startup.cfg
+      type: bind
+    - xrd1:/xr-storage/
+    - read_only: true
+      source: /sys/fs/cgroup
+      target: /sys/fs/cgroup
+      type: bind
+  xrd2:
+    cap_add:
+    - CHOWN
+    - DAC_OVERRIDE
+    - FSETID
+    - FOWNER
+    - MKNOD
+    - NET_RAW
+    - SETGID
+    - SETUID
+    - SETFCAP
+    - SETPCAP
+    - NET_BIND_SERVICE
+    - SYS_CHROOT
+    - KILL
+    - AUDIT_WRITE
+    - SYS_NICE
+    - SYS_ADMIN
+    - SYS_RESOURCE
+    - NET_ADMIN
+    - SYS_PTRACE
+    - IPC_LOCK
+    cap_drop:
+    - all
+    container_name: xrd2
+    devices:
+    - /dev/fuse
+    - /dev/net/tun
+    environment:
+      XR_EVERY_BOOT_CONFIG: /etc/xrd/startup.cfg
+      XR_INTERFACES: linux:xr-00,xr_name=Gi0/0/0/1;linux:xr-20,xr_name=Gi0/0/0/2
+    image: ios-xr:7.7.1
+    networks:
+      xrd1-gi1-xrd2-gi1: null
+      xrd2-gi2: null
+    security_opt:
+    - apparmor:unconfined
+    - label:disable
+    stdin_open: true
+    tty: true
+    volumes:
+    - source: ./xrd2_xrconf.cfg
+      target: /etc/xrd/startup.cfg
+      type: bind
+    - xrd2:/xr-storage/
+    - read_only: true
+      source: /sys/fs/cgroup
+      target: /sys/fs/cgroup
+      type: bind
+version: '2.4'
+volumes:
+  xrd1:
+    name: xrd1
+  xrd2:
+    name: xrd2

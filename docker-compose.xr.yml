@@ -1,0 +1,23 @@
+services:
+  xrd1:
+    xr_startup_cfg: xrd1_xrconf.cfg
+    xr_interfaces:
+      - Gi0/0/0/1
+      - Gi0/0/0/2
+  xrd2:
+    xr_startup_cfg: xrd2_xrconf.cfg
+    xr_interfaces:
+      - Gi0/0/0/1
+      - Gi0/0/0/2
+
+xr_l2networks:
+  - ["xrd1:Gi0/0/0/1", "xrd2:Gi0/0/0/1"]
+
+networks:
+  macvlan0:
+    driver: macvlan
+    driver_opts:
+      parent: ens224
+    ipam:
+      config:
+        - subnet: 10.10.10.0/24     
